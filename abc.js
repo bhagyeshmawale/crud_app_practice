@@ -1,33 +1,39 @@
 import re
 
-def break_string(input_string, max_length=20):
-    # Find all inner strings and replace them with a placeholder to avoid breaking them prematurely
+def format_string(input_string, line_length=20):
+    # Find all inner strings using regex and replace them with placeholders
     inner_strings = re.findall(r'\'\'(.*?)\'\'', input_string)
-    for inner_string in inner_strings:
-        input_string = input_string.replace(f"''{inner_string}''", f"__INNER_{len(inner_string)}__")
+    for inner_str in inner_strings:
+        if len(inner_str) > line_length:
+            input_string = input_string.replace(f"''{inner_str}''", f"\n{inner_str}\n")
+        else:
+            input_string = input_string.replace(f"''{inner_str}''", f"__{inner_str}__")
 
     words = input_string.split()
-    current_line = []
     lines = []
+    current_line = ""
 
     for word in words:
-        # If adding the current word exceeds the max_length, start a new line
-        if len(' '.join(current_line + [word])) > max_length:
-            lines.append(' '.join(current_line))
-            current_line = []
-
-        # If the word contains the placeholder for an inner string, add it as a whole to the next line
-        if '__INNER_' in word:
-            lines.append(word.replace('__', '').replace('_', ' '))
+        if len(current_line) + len(word) + 1 <= line_length:
+            current_line += word + " "
         else:
-            current_line.append(word)
+            lines.append(current_line.strip())
+            current_line = word + " "
 
+    # Add the last line
     if current_line:
-        lines.append(' '.join(current_line))
+        lines.append(current_line.strip())
 
-    return '\n'.join(lines)
+    # Replace placeholders with original inner strings
+    for i, line in enumerate(lines):
+        for inner_str in inner_strings:
+            placeholder = f"__{inner_str}__"
+            if placeholder in line:
+                lines[i] = line.replace(placeholder, f"''{inner_str}''")
+
+    return "\n".join(lines)
 
 # Test case
-input_str = "This is a long string with ''an inner string'' in it, which should not be broken."
-result = break_string(input_str, max_length=20)
-print(result)
+input_string = "if 'abc fdg jddj sfgh' ghgfhh dkd"
+formatted_string = format_string(input_string, line_length=20)
+print(formatted_string)
