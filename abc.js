@@ -2,41 +2,32 @@ def format_text(text, max_length=10):
     # Initialize variables
     lines = []
     current_line = ""
-    current_word = ""
-    in_inner_string = False
 
     # Split the text into words
     words = text.split()
 
     for word in words:
-        # Check if the word is an inner string starting and ending with ''
-        if word.startswith("''") and word.endswith("''"):
-            in_inner_string = True
-
-        if in_inner_string:
-            current_line += word + " "
-            if len(current_line) > max_length:
-                # Move entire inner string to the next line
+        # Check if adding the current word exceeds the max_length
+        if len(current_line) + len(word) + 1 > max_length:
+            # Check if the last character of the current line is a part of a word
+            if current_line and not current_line[-1].isspace():
+                # Move the word to the next line
+                lines.append(current_line.strip())
+                current_line = word + " "
+            else:
                 lines.append(current_line.strip())
                 current_line = ""
-                in_inner_string = False
-        else:
-            if len(current_line) + len(word) + 1 <= max_length:
-                # Add word to the current line
-                current_line += word + " "
-            else:
-                # Check if there is a word in the middle of the line
-                if current_word and len(current_line) + len(current_word) + 1 <= max_length:
-                    current_line += current_word + " "
-                    current_word = ""
 
-                # Add the current line to the list of lines
+        # Check for the presence of the inner string
+        if ("''" in word or '""' in word) and word.count("''") % 2 == 1:
+            # Check if the current word starts with the inner string
+            if (word.startswith("''") or word.startswith('""')) and len(current_line) + len(word) > max_length:
                 lines.append(current_line.strip())
-
-                # Reset the current line to the current word
                 current_line = word + " "
-
-        current_word = word
+            else:
+                current_line += word + " "
+        else:
+            current_line += word + " "
 
     # Add the remaining content to the last line
     if current_line:
@@ -48,6 +39,6 @@ def format_text(text, max_length=10):
     return formatted_text
 
 
-text = "hello everyone my name is abc, I came here to ''sea you all'' please come here"
+text = 'hello everyone my name is abc, I came here to "one two three four" and ''sea you all'' please come here john'
 formatted_text = format_text(text)
 print(formatted_text)
