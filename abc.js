@@ -1,25 +1,46 @@
-def wrap_text(text, max_length=25):
-    words = text.split()
+def format_text(text, max_length=25):
+    # Initialize variables
     lines = []
     current_line = ""
-    
-    for word in words:
-        if len(current_line) + len(word) + 1 <= max_length:  # +1 accounts for the space between words
-            current_line += " " + word
-        else:
-            lines.append(current_line.strip())
-            current_line = word
+    current_word = ""
 
+    # Split the text into words
+    words = text.split()
+
+    for word in words:
+        if len(current_line) + len(word) + 1 <= max_length:
+            # Add word to the current line
+            current_line += word + " "
+        else:
+            # Check if there is a word in the middle of the line
+            if current_word and len(current_line) + len(current_word) + 1 <= max_length:
+                current_line += current_word + " "
+                current_word = ""
+
+            # Add the current line to the list of lines
+            lines.append(current_line.strip())
+
+            # Reset the current line to the current word
+            current_line = word + " "
+
+        # Check for the presence of the inner string in single quotes
+        if "''" in word:
+            if current_line and current_line[-1] == " ":
+                current_line = current_line[:-1]  # Remove the trailing space before the inner string
+            lines.append(current_line.strip() + " " + word)
+            current_line = ""
+            current_word = ""
+
+    # Add the remaining content to the last line
     if current_line:
         lines.append(current_line.strip())
 
-    wrapped_text = "\n".join(lines)
+    # Join the lines back together
+    formatted_text = "\n".join(lines)
 
-    # Handle the case where inner strings in ''abc pqr '' are in the middle of a line
-    wrapped_text = wrapped_text.replace("''", "\n''")
+    return formatted_text
 
-    return wrapped_text
 
 text = "hello everyone my name is abc, I came here to ''sea you all'' please come here"
-result = wrap_text(text)
-print(result)
+formatted_text = format_text(text)
+print(formatted_text)
